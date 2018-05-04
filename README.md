@@ -14,5 +14,5 @@ For example:
 To run this software:
 
     source /local/pklaus/pyvenv/py34/bin/activate
-    ./mimosis_unpacker_cli.py --host 192.168.0.103
+    ./mimosis_unpacker_cli.py --host 192.168.0.103 --buffer-size 4096
 
