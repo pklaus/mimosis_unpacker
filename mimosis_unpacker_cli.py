@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import scipy.misc
 
 # Python stdlib
 import queue, threading, time
@@ -57,15 +58,24 @@ def matrix_image(ctx, filename):
         print("Exiting...")
     stop_event.set()
     fill_matrix_thread.join()
-    m[m == 0.] = np.nan
-    # m[63, 1023] = np.nan # set the corner to nan
     m = m[0:15, :]
-    print(m)
+    m_nan = m.copy()
+    m_nan[m_nan == 0.] = np.nan
+    # save matplotlib plot
     plt.figure(figsize=(40,10))
-    plt.imshow(m, interpolation='nearest')
+    plt.imshow(m_nan, interpolation='nearest')
     plt.colorbar()
     plt.savefig(filename)
     print("saved", filename)
-
+    # save 1:1 image
+    # https://docs.scipy.org/doc/scipy-0.16.1/reference/generated/scipy.misc.imsave.html
+    # https://docs.scipy.org/doc/scipy-0.16.1/reference/generated/scipy.misc.toimage.html
+    m = np.log10(m_nan)
+    m = np.interp(m, (np.nanmin(m), np.nanmax(m)), (0, 255))
+    np.nan_to_num(m, copy=False)
+    m = m.astype(np.uint64)
+    print(m)
+    scipy.misc.imsave(filename + ".scipy.png", m)
+    print("saved", filename + ".scipy.png")
 
 if __name__ == "__main__": cli(obj={})

@@ -1,3 +1,5 @@
 click
 numpy
 matplotlib
+scipy
+pillow
