@@ -40,33 +40,40 @@ def timed_queue_stats(q, interval=1.0):
         print("Packet Rate: {pr:.1f} pkts/s".format(pr=len(all_packets)/duration))
         print("=======================")
 
-def fill_matrix(q, m, stop_event):
-    """ q: queue.Queue, m: np.ndarray, stop_event: threading.Event() """
-
+def mimosis_words(data):
     def chunks(l, n):
         """Yield successive n-sized chunks from l."""
         for i in range(0, len(l), n):
             yield l[i:i + n]
+    length = len(data)
+    length = length // 4 * 4
+    return chunks(data[0:length], 4)
 
+def fill_matrix(q, m, stop_event):
+    """ q: queue.Queue, m: np.ndarray, stop_event: threading.Event() """
+
+    strange_words = []
     while not stop_event.is_set():
         while not q.empty():
             qsize = q.qsize()
             if qsize > 1: print(qsize)
             #print("begin of packet")
             packet = q.get()
-            length = len(packet['payload'])
-            length = length // 4 * 4
-            for chunk in chunks(packet['payload'][0:length], 4):
-                if chunk.startswith(b'\x00\x0b'):
+            for word in mimosis_words(packet['payload']):
+                if word.startswith(b'\x00\x0b'):
                     #print("BEGIN of new frame")
                     pass
-                else:
-                    #print("0x{0:02X}{1:02X}".format(chunk[2], chunk[3]))
-                    #col = chunk[2]
-                    col = (chunk[2] & 0b11111100) >> 2
-                    #row = chunk[3]
-                    row = ((chunk[2] & 0b11) << 8) + chunk[3]
+                elif word.startswith(b'\x00\x03'):
+                    #print("0x{0:02X}{1:02X}".format(word[2], word[3]))
+                    #col = word[2]
+                    col = (word[2] & 0b11111100) >> 2
+                    #row = word[3]
+                    row = ((word[2] & 0b11) << 8) + word[3]
                     #print((col, row))
                     m[col, row] += 1
+                else:
+                    strange_words.append(word)
             #print("end of packet")
+    if strange_words:
+        print("Found a couple of strange words: {}".format(strange_words))
     print("done with fill_matrix(...)")
