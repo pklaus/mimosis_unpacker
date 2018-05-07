@@ -28,15 +28,17 @@ def timed_queue_stats(q, interval=1.0):
     while True:
         while (time.time() - last) < interval:
             time.sleep(0.01)
+        duration = time.time() - last
         last += interval
         all_packets = []
         while not q.empty():
             all_packets.append(q.get())
         total_payload_len = sum(len(packet['payload']) for packet in all_packets)
-        print("Received ", total_payload_len, " bytes in the last ", interval, " seconds.")
-        print("Data Rate: {dr:.3f} Mbit/s".format(dr=8*total_payload_len/interval*1e-6))
+        print("Received {} bytes in the last {:.3f} seconds.".format(total_payload_len, duration))
+        print("Data Rate: {dr:.3f} Mbit/s".format(dr=8*total_payload_len/duration*1e-6))
         print("Number of packets received: ", len(all_packets))
-        print("Packet Rate: {pr:.1f} pkts/s".format(pr=len(all_packets)/interval))
+        print("Packet Rate: {pr:.1f} pkts/s".format(pr=len(all_packets)/duration))
+        print("=======================")
 
 def fill_matrix(q, m, stop_event):
     """ q: queue.Queue, m: np.ndarray, stop_event: threading.Event() """
