@@ -21,6 +21,7 @@ def udp_receive(host, port, q, buffer_size=9000):
         data, addr = sock.recvfrom(buffer_size)
         if data:
             q.put({'ts': dt.now(), 'payload': data, 'addr': addr})
+    print("done with udp_receive(...)")
 
 def timed_queue_stats(q, interval=1.0):
     last = time.time()
@@ -28,11 +29,11 @@ def timed_queue_stats(q, interval=1.0):
         while (time.time() - last) < interval:
             time.sleep(0.01)
         last += interval
-        all_data = []
+        all_packets = []
         while not q.empty():
-            all_data.append(q.get(block=False))
-        total_payload_len = sum(len(chunk['payload']) for chunk in all_data)
+            all_packets.append(q.get())
+        total_payload_len = sum(len(packet['payload']) for packet in all_packets)
         print("Received ", total_payload_len, " bytes in the last ", interval, " seconds.")
-        print("Data Rate: {dr:.3f} Mbit/s".format(dr=total_payload_len/interval*1e-6))
-        print("Number of packets received: ", len(all_data))
-        print("Packet Rate: {pr:.1f} pkts/s".format(pr=len(all_data)/interval))
+        print("Data Rate: {dr:.3f} Mbit/s".format(dr=8*total_payload_len/interval*1e-6))
+        print("Number of packets received: ", len(all_packets))
+        print("Packet Rate: {pr:.1f} pkts/s".format(pr=len(all_packets)/interval))
