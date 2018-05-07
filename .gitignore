@@ -1,0 +1,6 @@
+__pycache__
+*.png
+*.bin
+*.sh
+*.pcap
+*.txt
