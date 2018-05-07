@@ -5,9 +5,13 @@ import mimosis_unpacker
 
 # external deps
 import click
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 # Python stdlib
-import queue, threading
+import queue, threading, time
 
 
 @click.group()
@@ -32,6 +36,36 @@ def timed_stats(ctx, interval):
     # start print thread
     stats_thread = threading.Thread(target=mimosis_unpacker.timed_queue_stats, args=(q, interval))
     stats_thread.start()
+
+@cli.command()
+@click.pass_context
+@click.option('--filename', default='output.png', help='The output filename.')
+def matrix_image(ctx, filename):
+    q = queue.Queue()
+    # start recv thread
+    args = (ctx.obj['HOST'], ctx.obj['PORT'], q, ctx.obj['BUFFER_SIZE'])
+    recv_thread = threading.Thread(target=mimosis_unpacker.udp_receive, args=args, daemon=True)
+    recv_thread.start()
+    # start fill matrix thread
+    m = np.ndarray(shape=(64,1024), dtype=np.float)#np.uint64)
+    stop_event = threading.Event()
+    fill_matrix_thread = threading.Thread(target=mimosis_unpacker.fill_matrix, args=(q, m, stop_event))
+    fill_matrix_thread.start()
+    try:
+        while True: time.sleep(0.1)
+    except KeyboardInterrupt:
+        print("Exiting...")
+    stop_event.set()
+    fill_matrix_thread.join()
+    m[m == 0.] = np.nan
+    # m[63, 1023] = np.nan # set the corner to nan
+    m = m[0:15, :]
+    print(m)
+    plt.figure(figsize=(40,10))
+    plt.imshow(m, interpolation='nearest')
+    plt.colorbar()
+    plt.savefig(filename)
+    print("saved", filename)
 
 
 if __name__ == "__main__": cli(obj={})
