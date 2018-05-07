@@ -75,7 +75,8 @@ def matrix_image(ctx, filename):
     np.nan_to_num(m, copy=False)
     m = m.astype(np.uint64)
     print(m)
-    scipy.misc.imsave(filename + ".scipy.png", m)
-    print("saved", filename + ".scipy.png")
+    newname = filename + ".scipy.png"
+    scipy.misc.imsave(newname , m)
+    print("saved", newname)
 
 if __name__ == "__main__": cli(obj={})
