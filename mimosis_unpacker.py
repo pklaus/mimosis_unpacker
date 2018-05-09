@@ -8,6 +8,7 @@
 
 # Python stdlib
 import socket, time, queue
+from collections import Counter
 from datetime import datetime as dt
 
 
@@ -52,7 +53,7 @@ def mimosis_words(data):
 def fill_matrix(q, m, stop_event):
     """ q: queue.Queue, m: np.ndarray, stop_event: threading.Event() """
 
-    strange_words = []
+    strange_words = Counter()
     while not stop_event.is_set():
         while not q.empty():
             qsize = q.qsize()
@@ -89,7 +90,7 @@ def fill_matrix(q, m, stop_event):
                     row = row//2
                     m[col, row] += 1
                 else:
-                    strange_words.append(word)
+                    strange_words[word] += 1
             #print("end of packet")
     if strange_words:
         print("Found a couple of strange words: {}".format(strange_words))
