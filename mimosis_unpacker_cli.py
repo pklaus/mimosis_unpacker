@@ -83,5 +83,11 @@ def matrix_image(ctx, filename):
     newname = add_to_file_name(filename, "_scipy")
     scipy.misc.imsave(newname , m)
     print("saved", newname)
+    oldname = newname
+    newname = add_to_file_name(oldname, "_color")
+    os.system("cd python_colorscale; ./to_color_scale.py -s tillscale ../{}".format(oldname))
+    oldname = newname
+    newname = add_to_file_name(oldname, "_3x6")
+    os.system("convert {} -scale 300%x600% {}".format(oldname, newname))
 
 if __name__ == "__main__": cli(obj={})
