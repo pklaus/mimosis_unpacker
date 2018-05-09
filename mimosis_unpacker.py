@@ -56,7 +56,7 @@ def fill_matrix(q, m, stop_event):
     while not stop_event.is_set():
         while not q.empty():
             qsize = q.qsize()
-            if qsize > 1: print(qsize)
+            if qsize > 1: print("Queue (FIFO buffer) size > 1: ", qsize)
             #print("begin of packet")
             packet = q.get()
             for word in mimosis_words(packet['payload']):
