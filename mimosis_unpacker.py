@@ -80,7 +80,11 @@ def fill_matrix(q, m, stop_event):
                     #col = 2*col + col_add
                     #row = row//2
                     # Try 3:
-                    col_add = 1 if row % 4 in (1, 2) else 0
+                    #col_add = 1 if row % 4 in (1, 2) else 0
+                    #col = 2*col + col_add
+                    #row = row//2
+                    # Try 4:
+                    col_add = 1 if row % 4 in (0, 3) else 0
                     col = 2*col + col_add
                     row = row//2
                     m[col, row] += 1
