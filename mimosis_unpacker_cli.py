@@ -12,8 +12,12 @@ import matplotlib.pyplot as plt
 import scipy.misc
 
 # Python stdlib
-import queue, threading, time
+import queue, threading, time, os
+from os import path
 
+def add_to_file_name(old_name, addition):
+    fragments = path.splitext(old_name)
+    return fragments[0] + addition + fragments[1]
 
 @click.group()
 @click.option('--host', required=True, help='Host to listen on.')
@@ -76,7 +80,7 @@ def matrix_image(ctx, filename):
     np.nan_to_num(m, copy=False)
     m = m.astype(np.uint64)
     print(m)
-    newname = filename + ".scipy.png"
+    newname = add_to_file_name(filename, "_scipy")
     scipy.misc.imsave(newname , m)
     print("saved", newname)
 
