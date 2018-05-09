@@ -70,6 +70,19 @@ def fill_matrix(q, m, stop_event):
                     #row = word[3]
                     row = ((word[2] & 0b11) << 8) + word[3]
                     #print((col, row))
+                    # Fixing the double column issue
+                    # Try 1:
+                    #col_add = 1 if row%4 in (2, 3) else 0
+                    #col = 2*col + col_add
+                    #row = row//2 + row%2 - col_add
+                    # Try 2:
+                    #col_add = row % 2
+                    #col = 2*col + col_add
+                    #row = row//2
+                    # Try 3:
+                    col_add = 1 if row % 4 in (1, 2) else 0
+                    col = 2*col + col_add
+                    row = row//2
                     m[col, row] += 1
                 else:
                     strange_words.append(word)

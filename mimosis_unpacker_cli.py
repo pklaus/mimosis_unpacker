@@ -48,8 +48,8 @@ def matrix_image(ctx, filename):
     recv_thread = threading.Thread(target=mimosis_unpacker.udp_receive, args=args, daemon=True)
     recv_thread.start()
     # start fill matrix thread
-    m = np.ndarray(shape=(64,1024), dtype=np.float)#np.uint64)
     stop_event = threading.Event()
+    m = np.ndarray(shape=(32, 512), dtype=np.uint64)
     fill_matrix_thread = threading.Thread(target=mimosis_unpacker.fill_matrix, args=(q, m, stop_event))
     fill_matrix_thread.start()
     try:
@@ -58,7 +58,8 @@ def matrix_image(ctx, filename):
         print("Exiting...")
     stop_event.set()
     fill_matrix_thread.join()
-    m = m[0:15, :]
+    m = m.astype(np.float)
+    m = m[0:32, :]
     m_nan = m.copy()
     m_nan[m_nan == 0.] = np.nan
     # save matplotlib plot
