@@ -90,4 +90,8 @@ def matrix_image(ctx, filename):
     newname = add_to_file_name(oldname, "_3x6")
     os.system("convert {} -scale 300%x600% {}".format(oldname, newname))
 
-if __name__ == "__main__": cli(obj={})
+def main():
+    cli(obj={})
+
+if __name__ == "__main__":
+    main()

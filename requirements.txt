@@ -1,6 +1,0 @@
-click
-numpy
-matplotlib
-scipy
-pillow
-colorscale
