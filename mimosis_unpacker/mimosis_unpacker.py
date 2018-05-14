@@ -58,40 +58,22 @@ def fill_matrix(q, m, stop_event):
         while not q.empty():
             qsize = q.qsize()
             if qsize > 1: print("Queue (FIFO buffer) size > 1: ", qsize)
-            #print("begin of packet")
             packet = q.get()
             for word in mimosis_words(packet['payload']):
                 if word.startswith(b'\x00\x0b'):
                     #print("BEGIN of new frame")
                     pass
                 elif word.startswith(b'\x00\x03'):
-                    #print("0x{0:02X}{1:02X}".format(word[2], word[3]))
-                    #col = word[2]
                     col = (word[2] & 0b11111100) >> 2
-                    #row = word[3]
                     row = ((word[2] & 0b11) << 8) + word[3]
-                    #print((col, row))
-                    # Fixing the double column issue
-                    # Try 1:
-                    #col_add = 1 if row%4 in (2, 3) else 0
-                    #col = 2*col + col_add
-                    #row = row//2 + row%2 - col_add
-                    # Try 2:
-                    #col_add = row % 2
-                    #col = 2*col + col_add
-                    #row = row//2
-                    # Try 3:
-                    #col_add = 1 if row % 4 in (1, 2) else 0
-                    #col = 2*col + col_add
-                    #row = row//2
-                    # Try 4:
+                    # Disentangle double column topology
                     col_add = 1 if row % 4 in (0, 3) else 0
                     col = 2*col + col_add
                     row = row//2
+                    # Store hit by incrementing matrix entry
                     m[col, row] += 1
                 else:
                     strange_words[word] += 1
-            #print("end of packet")
     if strange_words:
         print("Found a couple of strange words: {}".format(strange_words))
     print("done with fill_matrix(...)")
