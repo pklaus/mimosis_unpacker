@@ -1,5 +1,6 @@
+## mimosis\_unpacker
 
-To set up this software:
+### Setting up the software
 
 1. Make sure, python3 is installed
 2. Set up Python venv (virtual environment)
@@ -7,12 +8,15 @@ To set up this software:
 
 For example:
 
+    python3 -V
     python3 -m venv /local/pklaus/pyvenv/py34
     source /local/pklaus/pyvenv/py34/bin/activate
     pip install -r requirements.txt
 
-To run this software:
+### Running the software
 
     source /local/pklaus/pyvenv/py34/bin/activate
-    ./mimosis_unpacker_cli.py --host 192.168.0.103 --buffer-size 4096
+    ./mimosis_unpacker_cli.py --host 192.168.0.103 timed_stats --interval 0.5
+    # or to get a time-integrated image of the matrix:
+    ./mimosis_unpacker_cli.py --host 192.168.0.103 matrix_image --filename test_0021.png
 
