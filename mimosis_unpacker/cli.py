@@ -45,7 +45,7 @@ def matrix_image(ctx, filename):
     recv_thread.start()
     # start fill matrix thread
     stop_event = threading.Event()
-    m = np.ndarray(shape=(32, 512), dtype=np.uint64)
+    m = np.ndarray(shape=(32, 504), dtype=np.uint64)
     fill_matrix_thread = threading.Thread(target=mimosis_unpacker.fill_matrix, args=(q, m, stop_event))
     fill_matrix_thread.start()
     try:
