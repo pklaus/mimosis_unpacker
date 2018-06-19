@@ -7,12 +7,15 @@ History:
     - 0.1: First Release
 """
 
+# external dependencies (pywin32)
 import pythoncom, win32com.client
-import numpy as np
+
+# python standard library
 import ctypes
 import subprocess
 
-from JTAGAddr import *
+# local dependencies
+from .JTAGAddr import *
 
 MIMOSIS0_JTAG_EXE="C:/CCMOS_SCTRL/MIMOSIS0_SC/MIMOSIS0_SC.exe"
 

@@ -7,8 +7,6 @@ History:
     - 0.1: First Release
 """
 
-import random
-
 class JTAGAddr():
     """ Class to define JTAG address 
         attributes:
