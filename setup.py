@@ -22,7 +22,10 @@ setup(name='mimosis_unpacker',
       author_email = 'klaus@physik.uni-frankfurt.de',
       url = 'https://github.com/pklaus/python_colorscale',
       license = 'GPL',
-      packages = ['mimosis_unpacker'],
+      packages = [
+          'mimosis_unpacker',
+          'mimosis_unpacker.jtag',
+          ],
       entry_points = {
           'console_scripts': [
               'mimosis_unpacker = mimosis_unpacker.cli:main',
