@@ -46,13 +46,26 @@ def timed_stats(ctx, interval):
     # Opens a thread safe queue (= FIFO)
     q = queue.Queue()
 
+    stop_event = threading.Event()
+    forwarding_enable = threading.Event()
+    stop_event.clear()
+    forwarding_enable.set()
+    
     # start recv thread
-    args = (ctx.obj['HOST'], ctx.obj['PORT'], q, ctx.obj['BUFFER_SIZE'])
+    args = (ctx.obj['HOST'], ctx.obj['PORT'], q, forwarding_enable, stop_event, ctx.obj['BUFFER_SIZE'])
+    
     recv_thread = threading.Thread(target=mimosis_unpacker.udp_receive, args=args)
     recv_thread.start()
     # start print thread
-    stats_thread = threading.Thread(target=mimosis_unpacker.timed_queue_stats, args=(q, interval))
+    args2=(q, stop_event,interval)
+    stats_thread = threading.Thread(target=mimosis_unpacker.timed_queue_stats, args=args2)
     stats_thread.start()
+    
+    try:
+        while True: time.sleep(0.1)
+    except KeyboardInterrupt:
+        print("Exiting...")
+    stop_event.set()
 
 # Defines the matrix_image command which has a --filename argument.
 @cli.command()
@@ -60,12 +73,18 @@ def timed_stats(ctx, interval):
 @click.option('--filename', default='output.png', help='The output filename.')
 def matrix_image(ctx, filename):
     q = queue.Queue()
+    
+    stop_event = threading.Event()
+    forwarding_enable = threading.Event()
+    stop_event.clear()
+    forwarding_enable.set()
+    
     # start recv thread
-    args = (ctx.obj['HOST'], ctx.obj['PORT'], q, ctx.obj['BUFFER_SIZE'])
+    args = (ctx.obj['HOST'], ctx.obj['PORT'], q, forwarding_enable, stop_event, ctx.obj['BUFFER_SIZE'])
     recv_thread = threading.Thread(target=mimosis_unpacker.udp_receive, args=args, daemon=True)
     recv_thread.start()
     # start fill matrix thread
-    stop_event = threading.Event()
+    
     m = np.ndarray(shape=(32, 504), dtype=np.uint64)
     fill_matrix_thread = threading.Thread(target=mimosis_unpacker.fill_matrix, args=(q, m, stop_event))
     fill_matrix_thread.start()

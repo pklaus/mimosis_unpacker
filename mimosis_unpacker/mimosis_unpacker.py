@@ -12,27 +12,28 @@ from collections import Counter
 from datetime import datetime as dt
 
 
-def udp_receive(host, port, q, buffer_size=9000):
+def udp_receive(host, port, q, forwarding_enable, stop_event, buffer_size=9000):
     """ q: queue.Queue() to put the data to """
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind((host, port))
 
-    while True:
+    while not stop_event.is_set():
         # potentially more efficient: sock.recvfrom_into(buf)
         data, addr = sock.recvfrom(buffer_size)
-        if data:
+        if (data and forwarding_enable.is_set()):
             q.put({'ts': dt.now(), 'payload': data, 'addr': addr})
     print("done with udp_receive(...)")
 
-def timed_queue_stats(q, interval=1.0):
+
+def timed_queue_stats(q, stop_event, interval=1.0):
     last = time.time()
-    while True:
+    while not stop_event.is_set():
         while (time.time() - last) < interval:
             time.sleep(0.01)
         duration = time.time() - last
         last += interval
         all_packets = []
-        while not q.empty():
+        while not (stop_event.is_set() or q.empty()):
             all_packets.append(q.get())
         total_payload_len = sum(len(packet['payload']) for packet in all_packets)
         print("Received {} bytes in the last {:.3f} seconds.".format(total_payload_len, duration))
