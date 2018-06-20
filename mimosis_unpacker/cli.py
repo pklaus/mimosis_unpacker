@@ -42,7 +42,7 @@ def timed_stats(ctx, interval):
     The reading process is done in a dedicated thread, which appears to run permanently (no stopping condition found).
     The data received is processed in a second thread.
     """
-
+    print("This is Timed Stats")
     # Opens a thread safe queue (= FIFO)
     q = queue.Queue()
 

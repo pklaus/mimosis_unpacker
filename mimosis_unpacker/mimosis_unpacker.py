@@ -42,6 +42,7 @@ def timed_queue_stats(q, stop_event, interval=1.0):
         print("Packet Rate: {pr:.1f} pkts/s".format(pr=len(all_packets)/duration))
         print("=======================")
 
+
 def mimosis_words(data):
     def chunks(l, n):
         """Yield successive n-sized chunks from l."""
@@ -78,3 +79,63 @@ def fill_matrix(q, m, stop_event):
     if strange_words:
         print("Found a couple of strange words: {}".format(strange_words))
     print("done with fill_matrix(...)")
+
+    
+def start_readout (host, port, q, forwarding_enable, stop_event, buffer_size=9000):
+    # starts the readout and puts it on stand by 
+    # set forwarding_enable in order to switch it fully on.
+    
+    forwarding_enable.clear()
+    stop_event.clear()
+    
+    args = (ctx.obj['HOST'], ctx.obj['PORT'], q, forwarding_enable, stop_event, ctx.obj['BUFFER_SIZE'])
+    
+    recv_thread = threading.Thread(target=mimosis_unpacker.udp_receive, args=args)
+    recv_thread.start() 
+        
+    
+def read_nFrames (qInput, qOutput, forwarding_enable, nFrames=5000)
+    
+    #qInput must be the q as provided to udp_receive
+    #qOutput is to contain a certain and controlled number of frames
+    nFramesRecorded=0 
+    #Stop data taking
+    forwarding_enable.clear()
+    
+    #flush queues in order to avoid that data taken with different
+    #settings are mixed.
+    
+    while not qInput.empty():
+        packet=qInput.get()
+        
+    while not qOutput.empty():
+        packet=qOutput.get()
+    
+    #Activate data taking
+    forwarding_enable.set()
+    
+    #Receive packets until nFrames frames are recorded
+    while True:
+        #Keep listening even if data is missing
+        
+        while not qInput.empty():
+            #if there is some data, scan it for frame headers and count them
+            packet = qInput.get()
+            for word in mimosis_words(packet['payload']):
+                if word.startswith(b'\x00\x0b'): #Frame Header found
+                    nFramesRecorded+=1
+            #and copy the related packet to the output buffer            
+            qOutput.put(packet)
+            
+            #in case all frames are taken stop working
+            if nFramesRecorded>nFrames: break
+        
+        #Just in case the input buffer was running empty, sleep in order 
+        #to collect new data with reduced CPU load
+        sleep(0.01)
+        
+        #And if we are full, stop listening
+        if nFramesRecorded>nFrames: break
+
+    #put data taking to stand by    
+    forwarding_enable.clear()
