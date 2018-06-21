@@ -7,14 +7,16 @@
 #none yet
 
 # Python stdlib
-import socket, time, queue
+import socket, time, queue, threading
 from collections import Counter
 from datetime import datetime as dt
+import numpy as np
 
 
-def udp_receive(host, port, q, forwarding_enable, stop_event, buffer_size=9000):
+def udp_receive(host, port, q, forwarding_enable, stop_event, buffer_size=4096):
     """ q: queue.Queue() to put the data to """
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    #sock.settimeout(0.005)
     sock.bind((host, port))
 
     while not stop_event.is_set():
@@ -36,6 +38,7 @@ def timed_queue_stats(q, stop_event, interval=1.0):
         while not (stop_event.is_set() or q.empty()):
             all_packets.append(q.get())
         total_payload_len = sum(len(packet['payload']) for packet in all_packets)
+        print(":)")
         print("Received {} bytes in the last {:.3f} seconds.".format(total_payload_len, duration))
         print("Data Rate: {dr:.3f} Mbit/s".format(dr=8*total_payload_len/duration*1e-6))
         print("Number of packets received: ", len(all_packets))
@@ -52,14 +55,64 @@ def mimosis_words(data):
     length = length // 4 * 4
     return chunks(data[0:length], 4)
 
-def fill_matrix(q, m, stop_event):
+def fill_matrix_with_nFrames(q, m, stop_event, nFrames):
     """ q: queue.Queue, m: np.ndarray, stop_event: threading.Event() """
 
+    
     strange_words = Counter()
+    framesProcessed=0
+    maxCol=m.shape[0]
+    maxRow=m.shape[1]
+    
+   
+    while not q.empty() and not stop_event.is_set():
+            qsize = q.qsize()
+            #if qsize > 1: print("Queue (FIFO buffer) size > 1: ", qsize)
+            packet = q.get()
+            
+            for word in mimosis_words(packet['payload']):
+                if framesProcessed>nFrames:
+                    pass 
+                    #stop recording data once nFrames frames are processed
+                    #but keeps emptying the queue
+                if word.startswith(b'\x00\x0b'):
+                    #print("BEGIN of new frame, header from sensor")
+                    framesProcessed+=1; #count frames. Indirectly: Start processing once the start of the first frame is detected.
+                elif (framesProcessed == 0 or framesProcessed>nFrames) :
+                    pass #ignore words, which arrive before the first frame header is found and words arriving beyond the last frame
+                elif word.startswith (b'\xff\xff'):
+                    pass #ignore header from TRB
+                elif word.startswith(b'\x00\x03') and framesProcessed>0:
+                    col = (word[2] & 0b11111100) >> 2
+                    row = ((word[2] & 0b11) << 8) + word[3]
+                    # Disentangle double column topology
+                    col_add = 1 if row % 4 in (0, 3) else 0
+                    col = 2*col + col_add
+                    row = row//2
+                    # Store hit by incrementing matrix entry
+                    if (col >= maxCol or row >= maxRow):
+                        print("Warning: Bad encoding: ", word.hex())
+                        strangeWords[word]+= 1
+                        pass
+                    else: 
+                        m[col, row] += 1
+                else:
+                    strange_words[word] += 1
+    if strange_words:
+        print("Found a couple of strange words: {}".format(strange_words))
+    print("done with fill_matrix(...)")
+    
+    
+    
+
+def fill_matrix(q, m, stop_event):
+    strange_words = Counter()
+   
+    
     while not stop_event.is_set():
         while not q.empty():
             qsize = q.qsize()
-            if qsize > 1: print("Queue (FIFO buffer) size > 1: ", qsize)
+            #if qsize > 1: print("Queue (FIFO buffer) size > 1: ", qsize)
             packet = q.get()
             for word in mimosis_words(packet['payload']):
                 if word.startswith(b'\x00\x0b'):
@@ -79,7 +132,6 @@ def fill_matrix(q, m, stop_event):
     if strange_words:
         print("Found a couple of strange words: {}".format(strange_words))
     print("done with fill_matrix(...)")
-
     
 def start_readout (host, port, q, forwarding_enable, stop_event, buffer_size=9000):
     # starts the readout and puts it on stand by 
@@ -88,13 +140,16 @@ def start_readout (host, port, q, forwarding_enable, stop_event, buffer_size=900
     forwarding_enable.clear()
     stop_event.clear()
     
-    args = (ctx.obj['HOST'], ctx.obj['PORT'], q, forwarding_enable, stop_event, ctx.obj['BUFFER_SIZE'])
+    args = (host, port, q, forwarding_enable, stop_event, buffer_size) 
     
-    recv_thread = threading.Thread(target=mimosis_unpacker.udp_receive, args=args)
+    recv_thread = threading.Thread(target=udp_receive, args=args)
     recv_thread.start() 
+    print("Readout started")
         
-    
-def read_nFrames (qInput, qOutput, forwarding_enable, nFrames=5000)
+
+
+        
+def read_nFrames (qInput, qOutput, forwarding_enable, nFrames=5000):
     
     #qInput must be the q as provided to udp_receive
     #qOutput is to contain a certain and controlled number of frames
@@ -122,8 +177,12 @@ def read_nFrames (qInput, qOutput, forwarding_enable, nFrames=5000)
             #if there is some data, scan it for frame headers and count them
             packet = qInput.get()
             for word in mimosis_words(packet['payload']):
+                #print(word.hex())
+                
                 if word.startswith(b'\x00\x0b'): #Frame Header found
                     nFramesRecorded+=1
+                    if ((nFramesRecorded %100) == 0):
+                        print("Frames Recorded = ",nFramesRecorded)
             #and copy the related packet to the output buffer            
             qOutput.put(packet)
             
@@ -132,7 +191,7 @@ def read_nFrames (qInput, qOutput, forwarding_enable, nFrames=5000)
         
         #Just in case the input buffer was running empty, sleep in order 
         #to collect new data with reduced CPU load
-        sleep(0.01)
+        time.sleep(0.01)
         
         #And if we are full, stop listening
         if nFramesRecorded>nFrames: break

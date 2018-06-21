@@ -1,7 +1,7 @@
 # external deps
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import scipy.misc
 
@@ -12,6 +12,20 @@ def add_to_file_name(old_name, addition):
     fragments = os.path.splitext(old_name)
     return fragments[0] + addition + fragments[1]
 
+def save_matrix_outputs_win(m, filename):
+    m = m.astype(np.float)
+    m = m[0:32, :]
+    m_nan = m.copy()
+    m_nan[m_nan == 0.] = np.nan
+    # save matplotlib plot
+    plt.figure(figsize=(40,10))
+    plt.imshow(m_nan, interpolation='nearest')
+    plt.colorbar()
+    print("Trying to save: ", filename)
+    plt.savefig(filename)
+    print("saved", filename)
+       
+    
 def save_matrix_outputs(m, filename):
     m = m.astype(np.float)
     m = m[0:32, :]
@@ -21,6 +35,7 @@ def save_matrix_outputs(m, filename):
     plt.figure(figsize=(40,10))
     plt.imshow(m_nan, interpolation='nearest')
     plt.colorbar()
+    print("Trying to save: ", filename)
     plt.savefig(filename)
     print("saved", filename)
     # save 1:1 image

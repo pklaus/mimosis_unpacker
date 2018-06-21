@@ -15,7 +15,7 @@ import ctypes
 import subprocess
 
 # local dependencies
-from .JTAGAddr import *
+from JTAGAddr import *
 
 MIMOSIS0_JTAG_EXE="C:/CCMOS_SCTRL/MIMOSIS0_SC/MIMOSIS0_SC.exe"
 
@@ -39,7 +39,7 @@ class JTAGCom():
         self._handle=None
         self.prog_id="MIMOSIS0.MIMOSIS0SC"
         self.conf_path="C:/CCMOS_SCTRL/MIMOSIS0_SC/config_files"
-        self._mcf_file="MIMOSIS0_DEF_TEMPLATE.mcf"
+        self._mcf_file="MIMOSIS0_DEF_TEMPLATE_PIXEL_DATA.mcf"
         self.pjtag=subprocess.Popen(MIMOSIS0_JTAG_EXE)
 
     def _get_handle(self):
