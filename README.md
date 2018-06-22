@@ -11,14 +11,12 @@ For example:
     python3 -V
     python3 -m venv ~/.pyvenv/py34
     source ~/.pyvenv/py34/bin/activate
-    pip install --upgrade https://github.com/pklaus/mimosis_unpacker/archive/master.zip
+    pip install --upgrade https://github.com/pklaus/mimosis_unpacker/archive/master.zip#egg=mimosis_unpacker[win]
     # or if you have the repository downloaded or cloned to a local directory:
-    pip install --upgrade .
+    pip install --upgrade .[win]
 
-If you need the JTAG / Windows COM functions to work (i.e. you're using the package on Windows)
-please install pywin32 in addition:
-
-    pip install pywin32
+The JTAG control part of the software works on Windows only as it relies on
+inter-process communication (COM) with the respective GUI tool.
 
 ### Running the software
 

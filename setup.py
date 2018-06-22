@@ -42,6 +42,9 @@ setup(name='mimosis_unpacker',
           "pillow>=3.3.0",
           "colorscale",
       ],
+      extras_require = {
+        'win':  ["pywin32"],
+      },
       keywords = 'Unpacker MIMOSIS CMOS MAPS CPS s-curve',
       classifiers = [
           'Development Status :: 4 - Beta',
