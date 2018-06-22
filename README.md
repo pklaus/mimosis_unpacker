@@ -11,9 +11,9 @@ For example:
     python3 -V
     python3 -m venv ~/.pyvenv/py34
     source ~/.pyvenv/py34/bin/activate
-    pip install --upgrade https://github.com/pklaus/mimosis_unpacker/archive/master.zip#egg=mimosis_unpacker[win]
+    pip install --upgrade https://github.com/pklaus/mimosis_unpacker/archive/master.zip
     # or if you have the repository downloaded or cloned to a local directory:
-    pip install --upgrade .[win]
+    pip install --upgrade .
 
 The JTAG control part of the software works on Windows only as it relies on
 inter-process communication (COM) with the respective GUI tool.
