@@ -12,6 +12,8 @@ For example:
     python3 -m venv ~/.pyvenv/py34
     source ~/.pyvenv/py34/bin/activate
     pip install --upgrade https://github.com/pklaus/mimosis_unpacker/archive/master.zip
+    # or if you have the repository downloaded or cloned to a local directory:
+    pip install --upgrade .
 
 If you need the JTAG / Windows COM functions to work (i.e. you're using the package on Windows)
 please install pywin32 in addition:
