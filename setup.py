@@ -20,7 +20,7 @@ setup(name='mimosis_unpacker',
       long_description = LDESC,
       author = 'Philipp Klaus',
       author_email = 'klaus@physik.uni-frankfurt.de',
-      url = 'https://github.com/pklaus/python_colorscale',
+      url = 'https://github.com/pklaus/mimosis_unpacker',
       license = 'GPL',
       packages = [
           'mimosis_unpacker',
