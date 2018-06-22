@@ -15,7 +15,7 @@ import ctypes
 import subprocess
 
 # local dependencies
-from JTAGAddr import *
+from .JTAGAddr import *
 
 MIMOSIS0_JTAG_EXE="C:/CCMOS_SCTRL/MIMOSIS0_SC/MIMOSIS0_SC.exe"
 

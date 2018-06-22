@@ -1,5 +1,5 @@
 import time, threading
-from JTAGCom import *
+from mimosis_unpacker.jtag.JTAGCom import *
 from mimosis_unpacker import *
 from mimosis_unpacker.output import *
 import numpy as np
