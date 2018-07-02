@@ -55,14 +55,16 @@ def mimosis_words(data):
     length = length // 4 * 4
     return chunks(data[0:length], 4)
 
-def fill_matrix_with_nFrames(q, m, stop_event, nFrames):
+def fill_matrix_with_nFrames(q, m, hitCountArray,stop_event, nFrames):
     """ q: queue.Queue, m: np.ndarray, stop_event: threading.Event() """
 
-    
+    counter=0;
     strange_words = Counter()
     framesProcessed=0
+    frameHeadersSequencer=0 
     maxCol=m.shape[0]
     maxRow=m.shape[1]
+    hitCountArray.clear();
     
    
     while not q.empty() and not stop_event.is_set():
@@ -75,13 +77,23 @@ def fill_matrix_with_nFrames(q, m, stop_event, nFrames):
                     pass 
                     #stop recording data once nFrames frames are processed
                     #but keeps emptying the queue
-                if word.startswith(b'\x00\x0b'):
-                    #print("BEGIN of new frame, header from sensor")
+                if word.startswith (b'\xff\xff'):
                     framesProcessed+=1; #count frames. Indirectly: Start processing once the start of the first frame is detected.
+                    #print("Hits detected in this frame: ", counter); 
+                    hitCountArray.append(counter)
+                    #print("Processing frame: ", framesProcessed, "========================")
+                    counter=0    
+                    
+    
+                
                 elif (framesProcessed == 0 or framesProcessed>nFrames) :
                     pass #ignore words, which arrive before the first frame header is found and words arriving beyond the last frame
-                elif word.startswith (b'\xff\xff'):
-                    pass #ignore header from TRB
+                
+                elif word.startswith(b'\x00\x0b'):
+                    #print("BEGIN of new frame, header from sensor")
+                    frameHeadersSequencer+=1;
+                    # print("Sequencer header found at: ", counter, "  Hex code: ", word.hex())
+                                        
                 elif word.startswith(b'\x00\x03') and framesProcessed>0:
                     col = (word[2] & 0b11111100) >> 2
                     row = ((word[2] & 0b11) << 8) + word[3]
@@ -96,11 +108,15 @@ def fill_matrix_with_nFrames(q, m, stop_event, nFrames):
                         pass
                     else: 
                         m[col, row] += 1
+                        counter+=1
                 else:
                     strange_words[word] += 1
     if strange_words:
         print("Found a couple of strange words: {}".format(strange_words))
+        
     print("done with fill_matrix(...)")
+    #print("HitCountArray: ", hitCountArray);
+    
     
     
     
@@ -154,6 +170,7 @@ def read_nFrames (qInput, qOutput, forwarding_enable, nFrames=5000):
     #qInput must be the q as provided to udp_receive
     #qOutput is to contain a certain and controlled number of frames
     nFramesRecorded=0 
+    
     #Stop data taking
     forwarding_enable.clear()
     
@@ -179,8 +196,9 @@ def read_nFrames (qInput, qOutput, forwarding_enable, nFrames=5000):
             for word in mimosis_words(packet['payload']):
                 #print(word.hex())
                 
-                if word.startswith(b'\x00\x0b'): #Frame Header found
+                if word.startswith(b'\xff\xff'): #Frame Header found
                     nFramesRecorded+=1
+                    
                     if ((nFramesRecorded %100) == 0):
                         print("Frames Recorded = ",nFramesRecorded)
             #and copy the related packet to the output buffer            
